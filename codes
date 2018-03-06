@@ -1,0 +1,167 @@
+%影长随时间的变化规律
+N=295;
+sigma=23.45*sin(2*pi*(284+N)/365)*pi/180;%太阳赤纬角
+Lon=116+(23*60+29)/3600; %经度
+Lat=(39+(54*60+26)/3600)/180*pi; %纬度弧度
+M=9:0.05:15; %北京时间
+m=M-(120-Lon)*4/60; %当地时间
+t=(15*abs(m-12))/180*pi; %时角
+alpha=asin(sin(Lat)*sin(sigma)+cos(Lat)*cos(sigma)*cos(t)); %太阳高度角
+h=3./(tan(alpha))； %3米杆长的影子长度
+h(1:10:end)
+plot(M,h)
+xlabel('北京时间/h');
+ylabel('影子长度/m');
+title('影长随时间的变化规律');
+
+%影长随纬度变化
+N=295;
+sigma=23.45*sin(2*pi*(284+N)/365)%太阳赤纬角
+Lat=-50:5:50; %纬度弧度
+t=0; %正午时刻时角
+alpha=asin(sind(Lat).*sind(sigma)+cosd(Lat).*cosd(sigma)*cosd(t)); %太阳高度角
+h=3./(tand(alpha)); %3 米杆长的影子长度
+plot(Lat,h,'r')
+title('影长随纬度的变化规律');
+
+%影长随经度变化
+N=295;
+sigma=23.45*sin(2*pi*(284+N)/365) %太阳赤纬角
+Lon=-180:10:180; %经度
+Lat=(39+(54*60+26)/3600)/180*pi; %纬度弧度
+M=12; %北京时间
+m=M-(120-Lon).*4/60; %当地时间
+t=(15*abs(m-12))/180*pi; %时角
+alpha=asin(sin(Lat)*sin(sigma)+cos(Lat)*cos(sigma).*cos(t)); %太阳高度角
+h=3./(tan(alpha)); %3 米杆长的影子长度
+subplot(1,2,1);
+plot(Lon,h,'g-');
+title('影长随经度的变化规律');
+Lon1=70:10:180;
+m1=M-(120-Lon1).*4/60;
+t1=(15*abs(m1-12))/180*pi;
+alpha1=asin(sin(Lat)*sin(sigma)+cos(Lat)*cos(sigma).*cos(t1));
+h1=3./(tan(alpha1));
+subplot(1,2,2);
+plot(Lon1,h1,'g-');
+title('处于白天的地方影长随经度的变化规律');
+%影长随日期的变化
+N=1:10:365;
+sigma=23.45*sin(2*pi*(284+N)/365)*pi/180;
+t=0; %正午时间
+alpha=asin(sin(Lat)*sin(sigma)+cos(Lat)*cos(sigma)*cos(t));
+h=3./(tan(alpha))
+plot(N,h)
+
+xlabel('北京时间/d');
+ylabel('影子长度/m');
+title('影长随日期的变化规律');
+
+%模型一验证--影长随时间的变化
+shijiceliang=[3.5530 2.7410 2.2820 2.1220 2.0910 2.1930 2.3460 2.82203.8130];
+N=103;
+sigma=23.45*sin(2*pi*(284+N)/365) %太阳赤纬角
+Lon=120.5; %经度
+Lat=36.16/180*pi; %纬度弧度
+M=10:0.05:14; %北京时间
+m=M-(120-Lon)*4/60; %当地时间
+t=(15*abs(m-12))/180*pi; %时角
+alpha=asin(sin(Lat)*sin(sigma)+cos(Lat)*cos(sigma)*cos(t)); %太阳高度角
+h=abs(1./(tan(alpha))); %1 米杆长的影子长度
+h(1:10:end)
+plot(M,h,'b',M(1:10:end),shijiceliang,'*r');
+legend('模型一计算影长','实际测量影长');
+xlabel('北京时间/h');
+ylabel('影子长度/m');
+title('影长随时间的变化规律拟合图--模型一验证');
+
+%已知日期求地点
+clear;clc
+A=load('data1.txt'); %data1 数据引用
+N=108;
+j=1;
+beta1=atan(A(:,2)./A(:,3));
+dn=108;
+sigma=23.45*sin(2*pi*(284+dn)/365);
+for Lat=-4:0.5:22 %纬度
+for Lon=110:0.5:114%经度
+i=1;
+for M=14+(42/60):0.05:15+(42/60) %北京时间
+t(i)=15*abs((M-(120-Lon).*4/60)-12);
+alpha=asind(sind(Lat)*sind(sigma)+cosd(Lat)*cosd(sigma).*cosd(t(i)));%太阳高度角
+beta(i)=asind(cosd(sigma)*sind(t(i))/cosd(alpha)); %太阳
+方位角
+i=i+1;
+end
+r(j)=0;
+
+for i=1:length(beta)
+r(j)=abs((beta(i)-beta1(i))/beta1(i))+r(j);
+end
+r(j)=r(j)/length(M);
+Lon1(j)=Lon;
+Lat1(j)=Lat;
+j=j+1;
+end
+end
+B=[Lon1' Lat1' r'];
+C=sortrows(B,3);
+C(1:10,:)
+
+%求日期地点
+A=load('data2.txt'); %data2 数据引用
+N=108;
+j=1;
+beta1=atan(A(:,2)./A(:,3));
+for dn=1:1:365
+sigma=23.45*sin(2*pi*(284+dn)/365);
+for Lat=-40:2:40 %纬度
+for Lon=80:0.5:94.5 %经度
+i=1;
+for M=12+(41/60):0.05:13+(41/60) %北京时间
+t(i)=15*abs((M-(120-Lon).*4/60)-12);
+alpha=asind(sind(Lat)*sind(sigma)+cosd(Lat)*cosd(sigma).*cosd(t(i)));%太阳高度角
+%beta(i)=acosd((sind(alpha)*sind(Lat)-sind(sigma))/(cosd(alpha)*cosd(Lat)));
+beta(i)=asind(cosd(sigma)*sind(t(i))/cosd(alpha)); %太阳方位角
+i=i+1;
+end
+r(j)=0;
+for i=1:length(beta)
+r(j)=abs((beta(i)-beta1(i))/beta1(i))+r(j);
+end
+r(j)=r(j)/length(M);
+dn1(j)=dn;
+Lon1(j)=Lon;
+Lat1(j)=Lat;
+j=j+1;
+end
+end
+end
+B=[Lon1' Lat1' dn1' r'];
+C=sortrows(B,4);
+C(1:10,:)
+
+%模型四
+clc;clear;
+file_name='Video-fujian4.avi';
+img=VideoReader(file_name);
+num_frame=img.NumberOfFrames; %帧的总数
+for k=1:1500:num_frame
+frame=read(img,k);
+imshow(frame); %显示图片
+imwrite(frame,strcat(num2str((k+1499)/1500),'.jpg'),'jpg');% 保存图片
+end
+%% 图片处理
+img=imread('1.jpg');
+img=double(img);
+p=fspecial('gaussian',[5 5]);
+img=imfilter(img,p,'replicate');
+figure;
+imshow(uint8(img)) %高斯滤波
+p=fspecial('sobel');
+img_p=imfilter(img,p,'replicate');
+w=w';
+img_q=imfilter(img,p,'replicate');
+img=sqrt(img_q.^2+img_p.^2);
+figure;
+imshow(uint8(img)) %索贝儿边缘检测
